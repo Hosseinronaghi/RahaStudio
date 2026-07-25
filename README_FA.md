@@ -1,53 +1,21 @@
-# Raha Studio Android v0.2 — موتور صوت واقعی
+# Raha Studio Android v1.2
 
-این نسخه، موتور صوت را از حالت Mock خارج می‌کند و از FFmpeg واقعی روی Android استفاده می‌کند.
+در این نسخه پکیج `file_picker` به‌طور کامل حذف شده است.
 
-## قابلیت‌های پیاده‌سازی‌شده
+انتخاب فایل با File Picker بومی Android و `ACTION_OPEN_DOCUMENT` انجام می‌شود.
+فایل انتخاب‌شده داخل Cache برنامه کپی می‌شود و مسیر محلی واقعی به موتور FFmpeg
+داده می‌شود.
 
-- Decode فایل صوتی یا Track صوتی ویدئو
-- Encode و ساخت خروجی MP3، WAV، M4A و FLAC
-- حذف نویز با فیلتر FFT (`afftdn`)
-- EQ مخصوص گفتار
-- High-pass و Low-pass متناسب با Preset
-- Compressor
-- حذف Hum در 50/100/150 هرتز
-- Loudness Normalization روی -16 LUFS
-- حذف محافظه‌کارانه سکوت ابتدا و انتها
-- پنج Preset
-- نمایش Progress و امکان Cancel
-- ذخیره خروجی در Documents خصوصی اپ
+این تغییر دو خطای قبلی را حذف می‌کند:
 
-## نکته فنی و مجوز
+- نبودن کلاس `FilePickerPlugin`
+- کامپایل‌شدن ماژول `file_picker` با Android API قدیمی‌تر
 
-پروژه از `ffmpeg_kit_flutter_new` استفاده می‌کند. بسته Full شامل اجزای GPL است؛ پیش از انتشار تجاری، الزامات GPL و مجوزهای FFmpeg را بررسی کنید. برای اپ فقط صوتی می‌توان در ادامه بسته Audio با مجوز مناسب‌تر را جایگزین کرد.
+## اجرای Build
 
-## اجرای پروژه
+1. همه فایل‌های ZIP را روی مخزن قبلی Replace کنید.
+2. Commit بزنید.
+3. وارد Actions شوید.
+4. Workflow با نام `Build Raha Studio Android v1.2` را اجرا کنید.
 
-ابتدا Flutter SDK و Android Studio را نصب کنید. سپس در ریشه پروژه:
-
-```bash
-flutter create . --platforms=android --org com.rahastudio
-flutter pub get
-flutter run
-```
-
-دستور `flutter create .` فقط Scaffold استاندارد Android را می‌سازد و فایل‌های `lib` و `pubspec.yaml` این پروژه را نگه می‌دارد.
-
-## ساخت APK
-
-```bash
-flutter build apk --release
-```
-
-خروجی معمولاً در مسیر زیر است:
-
-```text
-build/app/outputs/flutter-apk/app-release.apk
-```
-
-## محدودیت‌های این فاز
-
-- فیلتر نویز فعلی DSP/FFT است، نه مدل DeepFilterNet.
-- Mouth Click، Breath، Filler Words، Stutter، De-Reverb و Voice Isolation هنوز مدل AI واقعی ندارند.
-- Progress بر اساس Statistics پردازش تخمین زده می‌شود؛ برای درصد کاملاً دقیق، در فاز بعد مدت فایل با FFprobe خوانده می‌شود.
-- این محیط فاقد Flutter/Android SDK بود؛ بنابراین سورس آماده شده اما APK در همین محیط Build و روی دستگاه واقعی تست نشده است.
+در صورت شکست Build، Workflow یک Artifact تشخیصی نیز ایجاد می‌کند.

@@ -1,9 +1,9 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/app_session.dart';
+import '../../services/native_media_picker.dart';
 import '../../services/project_store.dart';
 
 class ImportMediaPage extends StatefulWidget {
@@ -15,17 +15,28 @@ class ImportMediaPage extends StatefulWidget {
 
 class _ImportMediaPageState extends State<ImportMediaPage> {
   String? selectedPath;
+  bool isPicking = false;
 
   Future<void> _pick() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: [
-        'mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg',
-        'mp4', 'mov', 'mkv', 'webm',
-      ],
-    );
-    final path = result?.files.single.path;
-    if (path != null) setState(() => selectedPath = path);
+    if (isPicking) return;
+
+    setState(() => isPicking = true);
+    try {
+      final path = await NativeMediaPicker.pickAudioOrVideo();
+      if (!mounted || path == null || path.isEmpty) return;
+      setState(() => selectedPath = path);
+    } on PlatformException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.message ?? 'انتخاب فایل با خطا روبه‌رو شد.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => isPicking = false);
+    }
   }
 
   Future<void> _continue() async {
@@ -37,6 +48,7 @@ class _ImportMediaPageState extends State<ImportMediaPage> {
       path.split(RegExp(r'[/\\]')).last,
       path,
     );
+
     if (mounted) context.go('/clean');
   }
 
@@ -52,7 +64,7 @@ class _ImportMediaPageState extends State<ImportMediaPage> {
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: _pick,
+                  onTap: isPicking ? null : _pick,
                   borderRadius: BorderRadius.circular(28),
                   child: Container(
                     width: double.infinity,
@@ -66,7 +78,10 @@ class _ImportMediaPageState extends State<ImportMediaPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.upload_file, size: 64),
+                        if (isPicking)
+                          const CircularProgressIndicator()
+                        else
+                          const Icon(Icons.upload_file, size: 64),
                         const SizedBox(height: 18),
                         Text(
                           selectedPath == null
@@ -77,7 +92,11 @@ class _ImportMediaPageState extends State<ImportMediaPage> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
-                        const Text('Audio: MP3, WAV, M4A, FLAC — Video: MP4, MOV'),
+                        const Text(
+                          'Audio: MP3, WAV, M4A, AAC, FLAC, OGG — '
+                          'Video: MP4, MOV, MKV, WEBM',
+                          textAlign: TextAlign.center,
+                        ),
                       ],
                     ),
                   ),
@@ -87,7 +106,8 @@ class _ImportMediaPageState extends State<ImportMediaPage> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: selectedPath == null ? null : _continue,
+                  onPressed:
+                      selectedPath == null || isPicking ? null : _continue,
                   child: const Text('ادامه'),
                 ),
               ),

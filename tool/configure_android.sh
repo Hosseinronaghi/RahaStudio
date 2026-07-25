@@ -1,39 +1,64 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 APP_GRADLE="android/app/build.gradle.kts"
-ROOT_GRADLE="android/build.gradle.kts"
 GRADLE_PROPERTIES="android/gradle.properties"
-[[ -f "$APP_GRADLE" && -f "$ROOT_GRADLE" ]] || { echo "Android scaffold is missing"; exit 1; }
-python3 - <<'PYCODE'
+MAIN_ACTIVITY_DIR="android/app/src/main/kotlin/com/rahastudio/raha_studio"
+MAIN_ACTIVITY_TEMPLATE="tool/android_template/MainActivity.kt"
+
+if [[ ! -f "$APP_GRADLE" ]]; then
+  echo "Missing $APP_GRADLE. Run flutter create first."
+  exit 1
+fi
+
+if [[ ! -f "$MAIN_ACTIVITY_TEMPLATE" ]]; then
+  echo "Missing $MAIN_ACTIVITY_TEMPLATE."
+  exit 1
+fi
+
+python3 - <<'PY'
 from pathlib import Path
-app=Path('android/app/build.gradle.kts')
-s=app.read_text().replace('compileSdk = flutter.compileSdkVersion','compileSdk = 36').replace('targetSdk = flutter.targetSdkVersion','targetSdk = 36').replace('minSdk = flutter.minSdkVersion','minSdk = 24')
-app.write_text(s)
-root=Path('android/build.gradle.kts')
-s=root.read_text()
-marker='// RAHA_FORCE_ANDROID_API_36'
-block='''
-// RAHA_FORCE_ANDROID_API_36
-subprojects {
-    plugins.withId("com.android.application") {
-        extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
-            compileSdk = 36
-        }
-    }
-    plugins.withId("com.android.library") {
-        extensions.configure<com.android.build.api.dsl.LibraryExtension> {
-            compileSdk = 36
-        }
-    }
+
+path = Path("android/app/build.gradle.kts")
+text = path.read_text()
+
+replacements = {
+    "compileSdk = flutter.compileSdkVersion": "compileSdk = 36",
+    "targetSdk = flutter.targetSdkVersion": "targetSdk = 36",
+    "minSdk = flutter.minSdkVersion": "minSdk = 24",
 }
-'''
-if marker not in s:
-    s=s.rstrip()+'\n'+block
-root.write_text(s)
-PYCODE
+
+for old, new in replacements.items():
+    if old not in text:
+        raise SystemExit(f"Expected Gradle line not found: {old}")
+    text = text.replace(old, new)
+
+path.write_text(text)
+PY
+
+mkdir -p "$MAIN_ACTIVITY_DIR"
+cp "$MAIN_ACTIVITY_TEMPLATE" "$MAIN_ACTIVITY_DIR/MainActivity.kt"
 
 touch "$GRADLE_PROPERTIES"
-grep -q '^android.useAndroidX=' "$GRADLE_PROPERTIES" || echo 'android.useAndroidX=true' >> "$GRADLE_PROPERTIES"
-grep -q '^android.enableJetifier=' "$GRADLE_PROPERTIES" || echo 'android.enableJetifier=true' >> "$GRADLE_PROPERTIES"
-grep -q '^org.gradle.vfs.watch=' "$GRADLE_PROPERTIES" || echo 'org.gradle.vfs.watch=false' >> "$GRADLE_PROPERTIES"
-echo "Configured all Android modules for compileSdk 36."
+
+set_prop() {
+  local key="$1"
+  local value="$2"
+  if grep -q "^${key}=" "$GRADLE_PROPERTIES"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$GRADLE_PROPERTIES"
+  else
+    echo "${key}=${value}" >> "$GRADLE_PROPERTIES"
+  fi
+}
+
+set_prop org.gradle.jvmargs "-Xmx4G -XX:MaxMetaspaceSize=1G -XX:ReservedCodeCacheSize=512m -XX:+HeapDumpOnOutOfMemoryError"
+set_prop android.useAndroidX "true"
+set_prop android.enableJetifier "true"
+set_prop org.gradle.vfs.watch "false"
+
+grep -q "compileSdk = 36" "$APP_GRADLE"
+grep -q "targetSdk = 36" "$APP_GRADLE"
+grep -q "minSdk = 24" "$APP_GRADLE"
+grep -q "native_media_picker" "$MAIN_ACTIVITY_DIR/MainActivity.kt"
+
+echo "Android configuration verified."

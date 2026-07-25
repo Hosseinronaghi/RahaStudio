@@ -1,40 +1,31 @@
-# Raha Studio Android v1.0
+# Raha Studio Android v1.2
 
-A GitHub-ready Flutter Android project with a real FFmpeg audio-processing pipeline.
+Android-first Flutter audio-cleaning reference application.
 
-## Android build baseline
+## Build baseline
 
-- Flutter: `3.44.8`
-- Java: `17`
-- Android compileSdk: `36`
-- Android targetSdk: `36`
-- Android minSdk: `24`
-- file_picker: `11.0.2`
-- ffmpeg_kit_flutter_new: `4.5.3`
+- Flutter 3.44.8
+- Java 17
+- Android compileSdk 36
+- Android targetSdk 36
+- Android minSdk 24
+- FFmpeg Kit Flutter New 4.5.3
 
-## Audio features already implemented
+## Important stability change
 
-- Decode audio and audio tracks from video
-- Encode MP3, WAV, M4A and FLAC
-- FFT noise reduction
-- Speech EQ
-- Compressor
-- 50/100/150 Hz hum reduction
-- EBU R128 loudness normalization
-- Leading/trailing silence trimming
-- Progress and cancellation
+The `file_picker` plugin has been removed completely. File selection now uses
+Android's native `ACTION_OPEN_DOCUMENT` through a small MethodChannel in
+`MainActivity.kt`. The selected content is copied into the app cache and a real
+local path is returned to FFmpeg.
 
-## Build on GitHub
+This removes both previous failure classes:
 
-Upload the repository contents, then open:
+- missing `FilePickerPlugin` during Java compilation
+- `file_picker` module compiled against an older Android API
 
-**Actions → Build Raha Studio Android v1 → Run workflow**
+## GitHub build
 
-The workflow produces:
+Open **Actions → Build Raha Studio Android v1.2 → Run workflow**.
 
-- Universal release APK
-- Per-ABI release APKs
-- Release AAB
-- SHA-256 checksums
-
-See `GITHUB_BUILD_FA.md` for Persian instructions.
+Successful runs upload universal APK, split APKs, AAB, and checksums.
+Failed runs upload Android configuration diagnostics.
