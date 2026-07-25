@@ -145,7 +145,7 @@ class _CleanAudioPageState extends State<CleanAudioPage> {
             ),
             const SizedBox(height: 14),
             DropdownButtonFormField<RahaPreset>(
-              value: options.preset,
+              initialValue: options.preset,
               decoration: const InputDecoration(labelText: 'Preset'),
               items: const [
                 DropdownMenuItem(
@@ -177,7 +177,7 @@ class _CleanAudioPageState extends State<CleanAudioPage> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<ExportFormat>(
-              value: options.exportFormat,
+              initialValue: options.exportFormat,
               decoration: const InputDecoration(labelText: 'فرمت خروجی'),
               items: const [
                 DropdownMenuItem(

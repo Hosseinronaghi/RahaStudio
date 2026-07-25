@@ -20,7 +20,7 @@ class _ExportPageState extends State<ExportPage> {
           child: Column(
             children: [
               DropdownButtonFormField<String>(
-                value: format,
+                initialValue: format,
                 decoration: const InputDecoration(labelText: 'فرمت'),
                 items: const [
                   DropdownMenuItem(value: 'MP3', child: Text('MP3')),
