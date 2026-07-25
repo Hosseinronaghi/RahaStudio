@@ -22,7 +22,7 @@ class NativeMediaStore {
     });
 
     if (result == null || result.isEmpty) {
-      throw const PlatformException(
+      throw PlatformException(
         code: 'EMPTY_EXPORT_RESULT',
         message: 'Android did not return the saved file location.',
       );
