@@ -1,0 +1,26 @@
+{
+  "name": "Raha Studio",
+  "version": "0.3.0",
+  "platform": "Android",
+  "framework": "Flutter",
+  "engine": "FFmpegKit Flutter New",
+  "implemented": [
+    "decode",
+    "encode mp3 wav m4a flac",
+    "fft noise reduction",
+    "speech EQ",
+    "compressor",
+    "hum removal",
+    "loudness normalization",
+    "edge silence removal",
+    "progress",
+    "cancel"
+  ],
+  "build_status": "source prepared; not built in this environment",
+  "ci": "GitHub Actions",
+  "outputs": [
+    "APK",
+    "split APKs",
+    "AAB"
+  ]
+}
