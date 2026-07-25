@@ -1,4 +1,4 @@
-name: Build Raha Studio Android v1
+name: Build Raha Studio Android v1.1
 
 on:
   workflow_dispatch:
@@ -71,6 +71,11 @@ jobs:
 
       - name: Dependency summary
         run: flutter pub deps --style=compact
+
+      - name: Verify Android API configuration
+        run: |
+          grep -R "compileSdk" android/app/build.gradle.kts android/build.gradle.kts
+          ./android/gradlew -p android projects
 
       - name: Analyze
         run: flutter analyze --fatal-infos
