@@ -1,4 +1,4 @@
-name: Build Raha Studio Android v1.2
+name: Build Raha Studio Android v1.3
 
 on:
   workflow_dispatch:
@@ -17,13 +17,11 @@ concurrency:
 
 jobs:
   build:
-    name: Analyze, test, and build Android
     runs-on: ubuntu-latest
-    timeout-minutes: 75
+    timeout-minutes: 80
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -46,7 +44,7 @@ jobs:
             "platform-tools" \
             "cmake;3.22.1"
 
-      - name: Generate Android scaffold
+      - name: Generate clean Android scaffold
         run: |
           rm -rf android .dart_tool build
           flutter create . \
@@ -55,18 +53,44 @@ jobs:
             --project-name raha_studio \
             --no-pub
 
-      - name: Configure and verify Android project
+      - name: Configure Android and security
         run: |
           chmod +x tool/configure_android.sh
           ./tool/configure_android.sh
-          grep -nE "compileSdk|targetSdk|minSdk" android/app/build.gradle.kts
-          sed -n '1,80p' android/app/src/main/kotlin/com/rahastudio/raha_studio/MainActivity.kt
+
+      - name: Configure optional release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RAHA_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.RAHA_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RAHA_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RAHA_KEY_PASSWORD }}
+        run: |
+          if [[ -n "$KEYSTORE_BASE64" ]]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/raha-release.jks
+            {
+              echo "RAHA_STORE_FILE=raha-release.jks"
+              echo "RAHA_STORE_PASSWORD=$STORE_PASSWORD"
+              echo "RAHA_KEY_ALIAS=$KEY_ALIAS"
+              echo "RAHA_KEY_PASSWORD=$KEY_PASSWORD"
+            } >> android/gradle.properties
+            echo "SIGNED_RELEASE=true" >> "$GITHUB_ENV"
+          else
+            echo "SIGNED_RELEASE=false" >> "$GITHUB_ENV"
+            echo "::warning::Release signing secrets are absent. APK will use the Android debug certificate and may trigger low-reputation warnings."
+          fi
 
       - name: Resolve dependencies
         run: |
           rm -f pubspec.lock
           flutter pub get
           flutter pub deps --style=compact
+
+      - name: Security sanity checks
+        run: |
+          ! grep -R "android.permission.INTERNET" android/app/src/main/AndroidManifest.xml
+          ! grep -R "READ_EXTERNAL_STORAGE\|WRITE_EXTERNAL_STORAGE\|MANAGE_EXTERNAL_STORAGE" android/app/src/main/AndroidManifest.xml
+          grep -q 'android:usesCleartextTraffic="false"' android/app/src/main/AndroidManifest.xml
+          grep -q 'applicationId = "com.rahastudio.app"' android/app/build.gradle.kts
 
       - name: Analyze
         run: flutter analyze --fatal-infos
@@ -77,42 +101,31 @@ jobs:
       - name: Build universal release APK
         run: flutter build apk --release --no-tree-shake-icons
 
-      - name: Build split release APKs
-        run: flutter build apk --release --split-per-abi --no-tree-shake-icons
-
       - name: Build release AAB
         run: flutter build appbundle --release --no-tree-shake-icons
 
-      - name: Collect outputs
-        if: success()
+      - name: Verify APK signature
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify \
+            --verbose \
+            --print-certs \
+            build/app/outputs/flutter-apk/app-release.apk \
+            > signature-report.txt
+          cat signature-report.txt
+
+      - name: Collect artifacts
         run: |
           mkdir -p dist
-          find build/app/outputs -type f \( -name "*.apk" -o -name "*.aab" \) \
-            -exec cp {} dist/ \;
-          sha256sum dist/* > dist/SHA256SUMS.txt
-          ls -lah dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/
+          cp build/app/outputs/bundle/release/app-release.aab dist/
+          cp signature-report.txt dist/
+          printf "signed_release=%s\n" "$SIGNED_RELEASE" > dist/BUILD-TRUST.txt
+          sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
 
-      - name: Upload Android artifacts
-        if: success()
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Raha-Studio-Android-v1.2-${{ github.run_number }}
+          name: Raha-Studio-v1.3-${{ github.run_number }}
           path: dist/*
           if-no-files-found: error
           retention-days: 30
-
-      - name: Upload diagnostics on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Raha-Studio-build-diagnostics-${{ github.run_number }}
-          path: |
-            pubspec.yaml
-            pubspec.lock
-            android/app/build.gradle.kts
-            android/build.gradle.kts
-            android/settings.gradle.kts
-            android/gradle.properties
-            android/app/src/main/kotlin/com/rahastudio/raha_studio/MainActivity.kt
-          if-no-files-found: warn
-          retention-days: 7
