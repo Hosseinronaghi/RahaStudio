@@ -1,4 +1,4 @@
-package com.rahastudio.raha_studio
+package com.rahastudio.app
 
 import android.app.Activity
 import android.content.ContentValues

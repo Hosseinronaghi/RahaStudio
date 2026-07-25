@@ -4,7 +4,7 @@ set -euo pipefail
 APP_GRADLE="android/app/build.gradle.kts"
 MANIFEST="android/app/src/main/AndroidManifest.xml"
 GRADLE_PROPERTIES="android/gradle.properties"
-MAIN_ACTIVITY_DIR="android/app/src/main/kotlin/com/rahastudio/raha_studio"
+MAIN_ACTIVITY_DIR="android/app/src/main/kotlin/com/rahastudio/app"
 MAIN_ACTIVITY_TEMPLATE="tool/android_template/MainActivity.kt"
 
 [[ -f "$APP_GRADLE" ]] || { echo "Missing $APP_GRADLE"; exit 1; }
@@ -63,6 +63,10 @@ m = m.replace(
     'android:fullBackupContent="false" '
     'android:usesCleartextTraffic="false"',
     1,
+)
+m = m.replace(
+    'android:name=".MainActivity"',
+    'android:name="com.rahastudio.app.MainActivity"',
 )
 manifest.write_text(m)
 PY

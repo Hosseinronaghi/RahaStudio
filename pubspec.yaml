@@ -1,7 +1,7 @@
 name: raha_studio
 description: Raha Studio - private, bilingual Android audio cleaning.
 publish_to: "none"
-version: 1.3.1+41
+version: 1.3.3+43
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

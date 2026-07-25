@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $appGradle = "android/app/build.gradle.kts"
-$mainActivityDir = "android/app/src/main/kotlin/com/rahastudio/raha_studio"
+$mainActivityDir = "android/app/src/main/kotlin/com/rahastudio/app"
 $template = "tool/android_template/MainActivity.kt"
 $gradleProperties = "android/gradle.properties"
 
