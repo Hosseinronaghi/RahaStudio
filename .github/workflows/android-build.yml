@@ -1,4 +1,4 @@
-name: Build Raha Studio Android v1.1
+name: Build Raha Studio Android v1.2
 
 on:
   workflow_dispatch:
@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   build:
-    name: Analyze, test and build Android
+    name: Analyze, test, and build Android
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
 
     steps:
       - name: Checkout source
@@ -40,42 +40,33 @@ jobs:
 
       - name: Install Android SDK 36
         run: |
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
             "platforms;android-36" \
             "build-tools;36.0.0" \
             "platform-tools" \
             "cmake;3.22.1"
 
-      - name: Generate modern Android scaffold
+      - name: Generate Android scaffold
         run: |
-          rm -rf android
+          rm -rf android .dart_tool build
           flutter create . \
             --platforms=android \
             --org com.rahastudio \
             --project-name raha_studio \
             --no-pub
 
-      - name: Configure Android API levels
+      - name: Configure and verify Android project
         run: |
           chmod +x tool/configure_android.sh
           ./tool/configure_android.sh
-          echo "---- app build.gradle.kts ----"
-          sed -n '1,220p' android/app/build.gradle.kts
-          echo "---- gradle.properties ----"
-          cat android/gradle.properties
+          grep -nE "compileSdk|targetSdk|minSdk" android/app/build.gradle.kts
+          sed -n '1,80p' android/app/src/main/kotlin/com/rahastudio/raha_studio/MainActivity.kt
 
       - name: Resolve dependencies
         run: |
-          rm -rf .dart_tool pubspec.lock
+          rm -f pubspec.lock
           flutter pub get
-
-      - name: Dependency summary
-        run: flutter pub deps --style=compact
-
-      - name: Verify Android API configuration
-        run: |
-          grep -R "compileSdk" android/app/build.gradle.kts android/build.gradle.kts
-          ./android/gradlew -p android projects
+          flutter pub deps --style=compact
 
       - name: Analyze
         run: flutter analyze --fatal-infos
@@ -93,6 +84,7 @@ jobs:
         run: flutter build appbundle --release --no-tree-shake-icons
 
       - name: Collect outputs
+        if: success()
         run: |
           mkdir -p dist
           find build/app/outputs -type f \( -name "*.apk" -o -name "*.aab" \) \
@@ -101,9 +93,26 @@ jobs:
           ls -lah dist
 
       - name: Upload Android artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Raha-Studio-Android-v1-${{ github.run_number }}
+          name: Raha-Studio-Android-v1.2-${{ github.run_number }}
           path: dist/*
           if-no-files-found: error
           retention-days: 30
+
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Raha-Studio-build-diagnostics-${{ github.run_number }}
+          path: |
+            pubspec.yaml
+            pubspec.lock
+            android/app/build.gradle.kts
+            android/build.gradle.kts
+            android/settings.gradle.kts
+            android/gradle.properties
+            android/app/src/main/kotlin/com/rahastudio/raha_studio/MainActivity.kt
+          if-no-files-found: warn
+          retention-days: 7
