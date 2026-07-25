@@ -1,0 +1,63 @@
+name: Build Raha Studio Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android scaffold
+        run: flutter create . --platforms=android --org com.rahastudio --project-name raha_studio
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build universal APK
+        run: flutter build apk --release
+
+      - name: Build split APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build AAB
+        run: flutter build appbundle --release
+
+      - name: Collect outputs
+        run: |
+          mkdir -p dist
+          find build/app/outputs -type f \( -name "*.apk" -o -name "*.aab" \) -exec cp {} dist/ \;
+          ls -lh dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Raha-Studio-Android-${{ github.run_number }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
