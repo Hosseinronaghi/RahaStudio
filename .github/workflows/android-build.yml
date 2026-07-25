@@ -52,7 +52,8 @@ jobs:
           flutter create . \
             --platforms=android \
             --org com.rahastudio \
-            --project-name raha_studio
+            --project-name raha_studio \
+            --no-pub
 
       - name: Configure Android API levels
         run: |
