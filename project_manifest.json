@@ -1,6 +1,6 @@
 {
   "name": "Raha Studio",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "platform": "Android",
   "framework": "Flutter",
   "engine": "FFmpegKit Flutter New",
@@ -19,8 +19,16 @@
   "build_status": "source prepared; not built in this environment",
   "ci": "GitHub Actions",
   "outputs": [
-    "APK",
+    "universal APK",
     "split APKs",
-    "AAB"
-  ]
+    "AAB",
+    "SHA256SUMS"
+  ],
+  "flutter": "3.44.8",
+  "compileSdk": 36,
+  "targetSdk": 36,
+  "minSdk": 24,
+  "java": 17,
+  "file_picker": "11.0.2",
+  "ffmpeg_kit_flutter_new": "4.5.3"
 }
