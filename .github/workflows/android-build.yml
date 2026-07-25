@@ -64,7 +64,9 @@ jobs:
           cat android/gradle.properties
 
       - name: Resolve dependencies
-        run: flutter pub get
+        run: |
+          rm -rf .dart_tool pubspec.lock
+          flutter pub get
 
       - name: Dependency summary
         run: flutter pub deps --style=compact
