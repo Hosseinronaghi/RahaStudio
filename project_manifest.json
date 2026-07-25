@@ -1,40 +1,21 @@
 {
   "name": "Raha Studio",
-  "version": "1.2.0",
+  "version": "1.3.0",
+  "applicationId": "com.rahastudio.app",
   "platform": "Android",
-  "framework": "Flutter",
-  "engine": "FFmpegKit Flutter New",
-  "implemented": [
-    "decode",
-    "encode mp3 wav m4a flac",
-    "fft noise reduction",
-    "speech EQ",
-    "compressor",
-    "hum removal",
-    "loudness normalization",
-    "edge silence removal",
-    "progress",
-    "cancel"
-  ],
-  "build_status": "source prepared; not built in this environment",
-  "ci": "GitHub Actions",
-  "outputs": [
-    "universal APK",
-    "split APKs",
-    "AAB",
-    "SHA256SUMS"
-  ],
-  "flutter": "3.44.8",
+  "minSdk": 29,
   "compileSdk": 36,
   "targetSdk": 36,
-  "minSdk": 24,
-  "java": 17,
-  "file_picker": null,
-  "ffmpeg_kit_flutter_new": "4.5.3",
-  "fixes": [
-    "Pin file_picker 11.0.1",
-    "Clear cached file_picker package before pub get",
-    "Use FilePicker.pickFiles API"
+  "languages": [
+    "fa",
+    "en"
   ],
-  "native_file_picker": "Android ACTION_OPEN_DOCUMENT + MethodChannel"
+  "persianFont": "Vazir via persian_fonts 1.0.6",
+  "internetPermission": false,
+  "broadStoragePermission": false,
+  "outputDestinations": [
+    "Music/Raha Studio",
+    "Downloads/Raha Studio"
+  ],
+  "releaseSigning": "GitHub Actions secrets supported"
 }

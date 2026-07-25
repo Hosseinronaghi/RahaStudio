@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../core/localization/app_strings.dart';
 import '../../services/project_store.dart';
 
 class ProjectsPage extends StatelessWidget {
@@ -7,32 +9,34 @@ class ProjectsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.l10n;
     final projects = context.watch<ProjectStore>().projects;
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('پروژه‌ها')),
-        body: projects.isEmpty
-          ? const Center(child: Text('هنوز پروژه‌ای ساخته نشده است.'))
-          : ListView.builder(
+
+    return Scaffold(
+      appBar: AppBar(title: Text(t.projects)),
+      body: projects.isEmpty
+          ? Center(child: Text(t.noProjects))
+          : ListView.separated(
               padding: const EdgeInsets.all(18),
               itemCount: projects.length,
-              itemBuilder: (_, i) {
-                final p = projects[i];
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (_, index) {
+                final project = projects[index];
                 return Card(
                   child: ListTile(
-                    leading: const Icon(Icons.audiotrack),
-                    title: Text(p.title),
-                    subtitle: Text(p.createdAt.toLocal().toString()),
+                    leading: const Icon(Icons.graphic_eq_rounded),
+                    title: Text(project.title),
+                    subtitle: Text(project.createdAt.toLocal().toString()),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => context.read<ProjectStore>().remove(p.id),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      onPressed: () {
+                        context.read<ProjectStore>().remove(project.id);
+                      },
                     ),
                   ),
                 );
               },
             ),
-      ),
     );
   }
 }

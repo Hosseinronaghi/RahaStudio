@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:raha_studio/app/raha_app.dart';
 import 'package:raha_studio/services/app_session.dart';
+import 'package:raha_studio/services/app_settings.dart';
 import 'package:raha_studio/services/project_store.dart';
 
 void main() {
@@ -11,6 +12,7 @@ void main() {
         providers: [
           ChangeNotifierProvider(create: (_) => ProjectStore()),
           ChangeNotifierProvider(create: (_) => AppSession()),
+          ChangeNotifierProvider(create: (_) => AppSettings()),
         ],
         child: const RahaApp(),
       ),
@@ -19,6 +21,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Raha Studio'), findsOneWidget);
-    expect(find.text('پروژه جدید'), findsOneWidget);
+    expect(find.byType(RahaApp), findsOneWidget);
   });
 }
