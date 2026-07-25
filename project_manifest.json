@@ -1,6 +1,6 @@
 {
   "name": "Raha Studio",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "platform": "Android",
   "framework": "Flutter",
   "engine": "FFmpegKit Flutter New",
@@ -29,9 +29,11 @@
   "targetSdk": 36,
   "minSdk": 24,
   "java": 17,
-  "file_picker": "11.0.2",
+  "file_picker": "11.0.1",
   "ffmpeg_kit_flutter_new": "4.5.3",
   "fixes": [
-    "Use FilePicker.pickFiles static API for file_picker 11.x"
+    "Pin file_picker 11.0.1",
+    "Clear cached file_picker package before pub get",
+    "Use FilePicker.pickFiles API"
   ]
 }
