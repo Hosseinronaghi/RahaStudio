@@ -17,7 +17,7 @@ class _ImportMediaPageState extends State<ImportMediaPage> {
   String? selectedPath;
 
   Future<void> _pick() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: [
         'mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg',
